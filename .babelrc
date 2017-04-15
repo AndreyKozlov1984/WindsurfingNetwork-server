@@ -3,7 +3,6 @@
       ["env", {"targets": {"node": true}}]
   ],
   "plugins": [
-      ["transform-async-to-generator"],
       ["transform-promise-to-bluebird"],
       ["babel-plugin-root-import", {"rootPathSuffix": "src" }]
   ]
