@@ -2,11 +2,8 @@
 // import all users, then import ther albums
 
 import fs from 'fs';
-import fsp from 'fs-promise';
 import process from 'process';
-import knex from '~/knex';
-import mkdirp from 'mkdirp-promise';
-import md5 from 'md5';
+import { fileMD5, lookupId, insert } from './import_utils';
 const fileName = process.env.USERS || '../scraper/users.json';
 const data = JSON.parse(fs.readFileSync(fileName));
 
@@ -17,21 +14,8 @@ function gender (str) {
   }[str];
 }
 
-async function fileMD5 (fileName) {
-  const nameWithoutPath = fileName.replace(/^images\//, '');
-  const name = `../scraper/images/${nameWithoutPath}`;
-  // console.info(name);
-  const content = await fsp.readFile(name, null);
-  const hash = await md5(content);
-  const firstPart = hash.substring(0, 2);
-  const lastPart = hash.substring(2);
-  await mkdirp(`usercontent/${firstPart}`);
-  await fsp.copy(name, `usercontent/${firstPart}/${lastPart}`);
-  return hash;
-}
-
 (async function () {
-  for (let userRecord of data.slice(0, 10)) {
+  for (let userRecord of data) {
     if (!userRecord.photo) {
       continue;
     }
@@ -45,27 +29,32 @@ async function fileMD5 (fileName) {
       gender: gender(userRecord.gender),
       birth_date: userRecord.date,
       logo: await fileMD5(userRecord.photo),
+      experience: userRecord.experience,
     };
-    const userId = (await knex('users').insert(dbEntry).returning('id'))[0];
-    console.info('user:', userId);
-    await Promise.map(userRecord.albums, async function (albumRecord) {
+    const userId = await insert('users', dbEntry);
+    await Promise.mapSeries(userRecord.albums, async function (albumRecord) {
+      const spotId = await lookupId('spots', albumRecord.spot_id);
       const albumRecordDbEntry = {
         name: albumRecord.name,
         user_id: userId,
-        spot_id: await knex('spots').where({ original_id: albumRecord.spot_id }).first('id').id,
+        spot_id: spotId,
       };
-      const albumId = (await knex('albums').insert(albumRecordDbEntry).returning('id'))[0];
+      const albumId = await insert('albums', albumRecordDbEntry);
       console.info('album: ', albumId);
-      await Promise.map(albumRecord.images, async function (imageRecord) {
+      await Promise.mapSeries(albumRecord.images, async function (imageRecord) {
         const imageRecordDbEntry = {
           created_at: imageRecord.date,
           filename: await fileMD5(imageRecord.filename),
           owner_id: albumId,
           owner_type: 'albums',
         };
-        await knex('photos').insert(imageRecordDbEntry);
+        await insert('photos', imageRecordDbEntry);
       });
     });
   }
-})().then(process.exit);
+})()
+  .then(process.exit)
+  .catch(function (e) {
+    console.info(e);
+  });
 

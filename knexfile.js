@@ -1,6 +1,7 @@
 require('babel-register');
 module.exports = {
   development: {
+    // debug: true,
     client: 'postgres',
     connection: 'postgres://vagrant@localhost/main',
     pool: {

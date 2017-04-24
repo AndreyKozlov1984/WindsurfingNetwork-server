@@ -1,7 +1,7 @@
 // Import all spots from the scraper
 import fs from 'fs';
 import process from 'process';
-import knex from '~/knex';
+import { insert, fileMD5 } from './import_utils';
 import _ from 'lodash';
 const fileName = process.env.SPOTS || '../scraper/spots.json';
 const data = JSON.parse(fs.readFileSync(fileName));
@@ -103,12 +103,12 @@ const dangerType = function (stats) {
   });
 };
 (async function () {
-  for (let spotRecord of data) {
+  await Promise.mapSeries(data, async function (spotRecord) {
     if (!spotRecord.lat) {
-      continue;
+      return;
     }
     if (!+spotRecord.lat) {
-      continue;
+      return;
     }
     console.info(spotRecord.questions.a6stats);
     const dbEntry = {
@@ -117,6 +117,7 @@ const dangerType = function (stats) {
       name: spotRecord.name,
       lat: +spotRecord.lat,
       lng: +spotRecord.lng,
+      logo: await fileMD5(spotRecord.photo),
       monthly_distribution: _.mapValues(spotRecord.distribution, function (arr) {
         return arr.map(v => +v);
       }),
@@ -137,7 +138,7 @@ const dangerType = function (stats) {
       danger_stats: dangerObject(spotRecord.questions.a7stats),
       danger_type: dangerType(spotRecord.questions.a7stats),
     };
-    await knex('spots').insert(dbEntry).returning('id');
-  }
+    await insert('spots', dbEntry);
+  });
 })().then(process.exit);
 

@@ -2,6 +2,7 @@ exports.up = function (knex, Promise) {
   return knex.schema.createTable('spots', function (table) {
     table.increments('id').primary();
     table.integer('original_id');
+    table.integer('rating');
     table.string('name');
     table.decimal('lat');
     table.decimal('lng');
@@ -22,6 +23,7 @@ exports.up = function (knex, Promise) {
     table.jsonb('benthal_type');
     table.jsonb('danger_stats');
     table.jsonb('danger_type');
+    table.string('logo');
   });
 };
 exports.down = function (knex, Promise) {

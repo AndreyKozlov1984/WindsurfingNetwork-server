@@ -4,6 +4,7 @@ exports.up = async function (knex) {
     table.integer('owner_id');
     table.string('owner_type');
     table.integer('user_id');
+    table.integer('school_id');
     table.text('content');
     table.datetime('date');
     table.string('wind_direction');
@@ -18,6 +19,7 @@ exports.up = async function (knex) {
     table.integer('user_id');
     table.text('content');
     table.datetime('date');
+    table.integer('post_id');
   });
   await knex.schema.createTable('schools', function (table) {
     table.increments('id').primary();

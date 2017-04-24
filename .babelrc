@@ -3,6 +3,7 @@
       ["env", {"targets": {"node": true}}]
   ],
   "plugins": [
+      ["transform-object-rest-spread"],
       ["transform-promise-to-bluebird"],
       ["babel-plugin-root-import", {"rootPathSuffix": "src" }]
   ]

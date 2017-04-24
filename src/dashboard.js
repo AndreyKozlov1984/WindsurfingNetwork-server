@@ -60,7 +60,27 @@ export async function getDashboardContent (filters) {
   let query = knex('spots');
   query = applyFilters({ query, filters });
 
-  const data = await query.select('*');
+  const data = await query
+    .select(
+      '*',
+      knex.raw(`(select count(*) from users_spots us where us.spot_id = spots.id) as users_count`),
+      knex.raw(`(select count(*) from spots_schools ss where ss.spot_id = spots.id) as schools_count`),
+      knex.raw(
+        `(select count(*) from posts p where 1 = 1
+        and p.owner_type = 'spots'
+        and p.owner_id = spots.id
+        and p.image_filename is not null
+       ) as photos_count`,
+      ),
+    )
+    .orderBy('users_count', 'desc');
+  const spotIds = _.map(data, 'id');
+  const posts = await knex('posts')
+    .where('owner_type', 'spots')
+    .whereIn('owner_id', spotIds)
+    .select('*')
+    .innerJoin('users', 'users.id', 'posts.user_id')
+    .orderBy('posts.date', 'desc');
   return {
     mapMarkers: data.map(function (record) {
       return {
@@ -75,9 +95,19 @@ export async function getDashboardContent (filters) {
         name: record.name,
         country: record.country,
         region: record.region,
+        logo: record.logo,
+        usersCount: record.users_count,
+        schoolsCount: record.schools_count,
+        photosCount: record.photos_count,
       };
     }),
-    activities: [],
+    activities: posts.map(function (record) {
+      return {
+        content: record.content,
+        date: record.date,
+        name: record.name,
+      };
+    }),
   };
 }
 
