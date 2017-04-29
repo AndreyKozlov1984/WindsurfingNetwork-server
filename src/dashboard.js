@@ -80,7 +80,8 @@ export async function getDashboardContent (filters) {
     .whereIn('owner_id', spotIds)
     .select('*')
     .innerJoin('users', 'users.id', 'posts.user_id')
-    .orderBy('posts.date', 'desc');
+    .orderBy('posts.date', 'desc')
+    .limit(20);
   return {
     mapMarkers: data.map(function (record) {
       return {

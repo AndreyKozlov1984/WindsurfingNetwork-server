@@ -64,3 +64,31 @@ export async function getSpotGallery (id) {
   };
 }
 
+export async function getSpotUsers (id) {
+  const spotInfo = await knex('spots').where('spots.id', id).select('spots.id', 'spots.name').first();
+  const users = await knex('users')
+    .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
+    .where('users_spots.spot_id', id)
+    .select(
+      'users.id',
+      'users.name',
+      'users.logo',
+      'users.rating',
+      'users.country',
+      'users.city',
+      knex.raw(
+        `
+          (select count(*) from photos inner join albums on photos.owner_type = 'albums' and
+          photos.owner_id = albums.id::text
+          where albums.user_id =  users.id) as photos_count
+        `,
+      ),
+    );
+
+  return {
+    id: spotInfo.id,
+    name: spotInfo.name,
+    users: users,
+  };
+}
+
