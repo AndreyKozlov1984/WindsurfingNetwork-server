@@ -10,8 +10,8 @@ exports.up = async function (knex) {
     table.string('wind_direction');
     table.integer('wind_force');
     table.integer('wind_gust');
-    table.decimal('lat');
-    table.decimal('lng');
+    table.float('lat');
+    table.float('lng');
     table.string('image_filename');
   });
   await knex.schema.createTable('comments', function (table) {

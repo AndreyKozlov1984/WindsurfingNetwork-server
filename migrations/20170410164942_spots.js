@@ -4,8 +4,8 @@ exports.up = function (knex, Promise) {
     table.integer('original_id');
     table.integer('rating');
     table.string('name');
-    table.decimal('lat');
-    table.decimal('lng');
+    table.float('lat');
+    table.float('lng');
     table.string('country');
     table.string('region');
     table.jsonb('monthly_distribution');
