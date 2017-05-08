@@ -78,9 +78,9 @@ export async function getDashboardContent (filters) {
   const posts = await knex('posts')
     .where('owner_type', 'spots')
     .whereIn('owner_id', spotIds)
-    .select('*')
     .innerJoin('users', 'users.id', 'posts.user_id')
     .orderBy('posts.date', 'desc')
+    .select('posts.id', 'users.name', 'posts.content', 'posts.date')
     .limit(20);
   return {
     mapMarkers: data.map(function (record) {
