@@ -104,6 +104,7 @@ export async function getDashboardContent (filters) {
     }),
     activities: posts.map(function (record) {
       return {
+        id: record.id,
         content: record.content,
         date: record.date,
         name: record.name,
