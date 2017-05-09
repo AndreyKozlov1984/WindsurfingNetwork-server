@@ -23,6 +23,7 @@ function queryPosts () {
     .leftJoin('schools', 'schools.id', 'posts.school_id')
     .orderBy('posts.date', 'desc')
     .select(
+      'posts.id',
       'posts.content',
       'posts.date',
       knex.raw('coalesce(users.name, schools.name) as name'),
