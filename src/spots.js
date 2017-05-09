@@ -5,7 +5,28 @@ import _ from 'lodash';
 import moment from 'moment';
 
 export async function getSpot (id) {
-  var query = knex('spots').where('spots.id', id).first();
+  var query = knex('spots')
+    .where('spots.id', id)
+    .select(
+      'id',
+      'name',
+      'lat',
+      'lng',
+      'logo',
+      'name',
+      'country',
+      'region',
+      'rating',
+      'monthly_distribution',
+      'surface_type',
+      'beach_type',
+      'wind_type',
+      'convenience_type',
+      'entrance_type',
+      'benthal_type',
+      'danger_type',
+    )
+    .first();
   const result = await query;
   console.info(result.id);
   const schools = await knex('schools')
@@ -25,8 +46,6 @@ export async function getSpot (id) {
 
   return {
     ...result,
-    lat: +result.lat,
-    lng: +result.lng,
     schools: schools,
     photos: photos,
     users: users,
@@ -78,7 +97,7 @@ export async function getSpotUsers (id) {
       'users.city',
       knex.raw(
         `
-          (select count(*) from photos inner join albums on photos.owner_type = 'albums' and
+          (select count(*)::integer from photos inner join albums on photos.owner_type = 'albums' and
           photos.owner_id = albums.id::text
           where albums.user_id =  users.id) as photos_count
         `,

@@ -28,10 +28,10 @@ function queryPosts () {
       'posts.date',
       knex.raw('coalesce(users.name, schools.name) as name'),
       knex.raw('coalesce(users.logo, schools.logo) as logo'),
-      knex.raw('coalesce(users.id, schools.id) as author_id'),
+      // knex.raw('coalesce(users.id, schools.id) as author_id'),
       'posts.image_filename as image_filename',
       knex.raw(
-        ` (select json_agg(comments) from (${commentsQuery})  as comments)
+        ` (select coalesce(json_agg(comments), '[]'::json) from (${commentsQuery})  as comments)
           as comments `,
       ),
     );
