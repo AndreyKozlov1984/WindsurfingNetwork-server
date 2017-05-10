@@ -113,6 +113,11 @@ export async function getSpotUsers (id) {
 
 export async function getSpotSchools (id) {
   const spotInfo = await knex('spots').where('spots.id', id).select('spots.id', 'spots.name').first();
+  const photosQuery = knex('photos')
+    .whereRaw('photos.owner_id = schools.id::text')
+    .whereRaw("photos.owner_type = 'schools'")
+    .select('photos.filename');
+
   const schools = await knex('schools')
     .innerJoin('spots_schools', 'spots_schools.school_id', 'schools.id')
     .where('spots_schools.spot_id', id)
@@ -121,11 +126,17 @@ export async function getSpotSchools (id) {
       'schools.name',
       'schools.logo',
       'schools.description',
+      'schools.website',
       knex.raw(
         `
           (select count(*)::integer from photos where
           photos.owner_id = schools.id::text and photos.owner_type = 'schools'
           ) as photos_count
+        `,
+      ),
+      knex.raw(
+        `
+         (select coalesce(json_agg(photos.filename), '[]'::json) from (${photosQuery}) as photos) as photos
         `,
       ),
     );
