@@ -6,7 +6,7 @@ import fsp from 'fs-promise';
 
 import { getDashboardContent, getLookupData } from '~/dashboard';
 import { getPosts, getPost } from '~/posts';
-import { getSpot, getSpotGallery, getSpotUsers } from '~/spots';
+import { getSpot, getSpotGallery, getSpotUsers, getSpotSchools } from '~/spots';
 
 const app = new Koa();
 const router = new Router({
@@ -51,6 +51,9 @@ spotsRouter.get('/:id/gallery', async function (ctx) {
 });
 spotsRouter.get('/:id/users', async function (ctx) {
   ctx.body = await getSpotUsers(ctx.params.id);
+});
+spotsRouter.get('/:id/schools', async function (ctx) {
+  ctx.body = await getSpotSchools(ctx.params.id);
 });
 // response
 app.use(json());

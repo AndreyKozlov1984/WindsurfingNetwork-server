@@ -39,7 +39,7 @@ export async function getSpot (id) {
     .whereRaw('posts.image_filename is not null')
     .pluck('image_filename');
   const users = await knex('users')
-    .select('users.id', 'users.name', 'users.logo')
+    .select('users.id', 'users.logo')
     .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
     .where('users_spots.spot_id', result.id)
     .orderBy('users.rating', 'desc');
@@ -108,6 +108,32 @@ export async function getSpotUsers (id) {
     id: spotInfo.id,
     name: spotInfo.name,
     users: users,
+  };
+}
+
+export async function getSpotSchools (id) {
+  const spotInfo = await knex('spots').where('spots.id', id).select('spots.id', 'spots.name').first();
+  const schools = await knex('schools')
+    .innerJoin('spots_schools', 'spots_schools.school_id', 'schools.id')
+    .where('spots_schools.spot_id', id)
+    .select(
+      'schools.id',
+      'schools.name',
+      'schools.logo',
+      'schools.description',
+      knex.raw(
+        `
+          (select count(*)::integer from photos where
+          photos.owner_id = schools.id::text and photos.owner_type = 'schools'
+          ) as photos_count
+        `,
+      ),
+    );
+
+  return {
+    id: spotInfo.id,
+    name: spotInfo.name,
+    schools: schools,
   };
 }
 
