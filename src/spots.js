@@ -148,3 +148,73 @@ export async function getSpotSchools (id) {
   };
 }
 
+export async function getSpotForm (id) {
+  const spotInfo = await knex('spots')
+    .where('spots.id', id)
+    .select(
+      'spots.id',
+      'spots.name',
+      'spots.lat',
+      'spots.lng',
+      'spots.rating',
+      'spots.country',
+      'spots.region',
+      'spots.monthly_distribution',
+      'spots.surface_type',
+      'spots.beach_type',
+      'spots.wind_type',
+      'spots.convenience_type',
+      'spots.entrance_type',
+      'spots.benthal_type',
+      'spots.danger_type',
+      'spots.logo',
+    )
+    .first();
+
+  const schools = await knex('schools')
+    .pluck('schools.id')
+    .innerJoin('spots_schools', 'schools.id', 'spots_schools.school_id')
+    .where('spots_schools.spot_id', id);
+  const photos = await knex('posts')
+    .where('owner_id', id)
+    .where('owner_type', 'spots')
+    .whereRaw('posts.image_filename is not null')
+    .pluck('image_filename');
+  const users = await knex('users')
+    .pluck('users.id')
+    .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
+    .where('users_spots.spot_id', id)
+    .orderBy('users.rating', 'desc');
+
+  return {
+    values: {
+      ...spotInfo,
+      schools: schools,
+      photos: photos,
+      users: users,
+    },
+  };
+}
+
+export async function saveSpot (id, values) {
+  await knex('spots')
+    .update({
+      name: values.name,
+      lat: values.lat,
+      lng: values.lng,
+      rating: values.rating,
+      country: values.country,
+      region: values.region,
+      monthly_distribution: values.monthly_distribution,
+      surface_type: values.surface_type,
+      beach_type: values.beach_type,
+      wind_type: values.wind_type,
+      convenience_type: values.convenience_type,
+      benthal_type: values.benthal_type,
+      danger_type: values.danger_type,
+      logo: values.logo,
+    })
+    .where('id', id);
+  return { result: 'ok', errors: {} };
+}
+

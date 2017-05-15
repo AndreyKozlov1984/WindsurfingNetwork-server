@@ -6,7 +6,7 @@ import fsp from 'fs-promise';
 
 import { getDashboardContent, getLookupData } from '~/dashboard';
 import { getPosts, getPost } from '~/posts';
-import { getSpot, getSpotGallery, getSpotUsers, getSpotSchools } from '~/spots';
+import { getSpot, getSpotForm, getSpotGallery, getSpotUsers, getSpotSchools, saveSpot } from '~/spots';
 
 const app = new Koa();
 const router = new Router({
@@ -45,6 +45,12 @@ const spotsRouter = new Router({
 });
 spotsRouter.get('/:id', async function (ctx) {
   ctx.body = await getSpot(ctx.params.id);
+});
+spotsRouter.post('/:id', async function (ctx) {
+  ctx.body = await saveSpot(ctx.params.id, ctx.request.body);
+});
+spotsRouter.get('/:id/edit', async function (ctx) {
+  ctx.body = await getSpotForm(ctx.params.id);
 });
 spotsRouter.get('/:id/gallery', async function (ctx) {
   ctx.body = await getSpotGallery(ctx.params.id);
