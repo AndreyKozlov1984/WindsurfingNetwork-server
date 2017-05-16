@@ -175,6 +175,9 @@ export async function getSpotForm (id) {
     .pluck('schools.id')
     .innerJoin('spots_schools', 'schools.id', 'spots_schools.school_id')
     .where('spots_schools.spot_id', id);
+  const allSchools = await knex('schools')
+    .select('schools.id', 'schools.name', 'schools.logo')
+    .orderBy('schools.name', 'asc');
   const photos = await knex('posts')
     .where('owner_id', id)
     .where('owner_type', 'spots')
@@ -192,6 +195,9 @@ export async function getSpotForm (id) {
       schools: schools,
       photos: photos,
       users: users,
+    },
+    lookups: {
+      schools: allSchools,
     },
   };
 }
@@ -215,6 +221,12 @@ export async function saveSpot (id, values) {
       logo: values.logo,
     })
     .where('id', id);
+
+  await knex('spots_schools').where('spot_id', id).del();
+
+  const inserts = values.schools.map(schoolId => ({ spot_id: id, school_id: schoolId }));
+  await knex('spots_schools').insert(inserts);
+
   return { result: 'ok', errors: {} };
 }
 
