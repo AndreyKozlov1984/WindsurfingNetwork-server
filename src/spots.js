@@ -227,6 +227,6 @@ export async function saveSpot (id, values) {
   const inserts = values.schools.map(schoolId => ({ spot_id: id, school_id: schoolId }));
   await knex('spots_schools').insert(inserts);
 
-  return { result: 'ok', errors: {} };
+  return { status: 'ok', errors: {} };
 }
 
