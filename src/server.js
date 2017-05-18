@@ -8,7 +8,7 @@ import asyncBusboy from 'async-busboy';
 import { getDashboardContent, getLookupData } from '~/dashboard';
 import { getPosts, getPost } from '~/posts';
 import { getSpot, getSpotForm, getSpotGallery, getSpotUsers, getSpotSchools, saveSpot } from '~/spots';
-import { fileMD5 } from './utils';
+import { fileMD5, resize } from './utils';
 import streamToPromise from 'stream-to-promise';
 
 const app = new Koa();
@@ -16,8 +16,6 @@ const router = new Router({
   prefix: '/api/dashboard',
 });
 router.post('/', async function (ctx) {
-  console.info(ctx.request.headers);
-  console.info('yeah?');
   ctx.body = await getDashboardContent(ctx.request.body);
 });
 router.get('/init', async function (ctx) {
@@ -28,7 +26,6 @@ const secondRouter = new Router({
   prefix: '/api/usercontent',
 });
 secondRouter.get('/:id', async function (ctx) {
-  console.info(ctx.params);
   const dir = ctx.params.id.substring(0, 2);
   const filename = ctx.params.id.substring(2);
   ctx.body = await fsp.readFile(`usercontent/${dir}/${filename}`);
@@ -42,7 +39,8 @@ uploadRouter.post('/', async function (ctx) {
   const { files } = await asyncBusboy(ctx.req);
   const fileStream = files[0];
   const content = await streamToPromise(fileStream);
-  const md5 = await fileMD5(content);
+  const resizedContent = await resize(content, 128, 128);
+  const md5 = await fileMD5(resizedContent);
 
   ctx.body = { success: true, id: md5 };
 });
