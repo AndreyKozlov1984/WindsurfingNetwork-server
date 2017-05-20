@@ -1,8 +1,7 @@
 import knex from '~/knex';
-import fs from 'fs';
-import getImageSize from 'probe-image-size';
 import _ from 'lodash';
-import moment from 'moment';
+import getImageSize from 'probe-image-size';
+import { hashPath, fileMD5, rotateImage } from './utils';
 
 export async function getSpot (id) {
   var query = knex('spots')
@@ -33,11 +32,7 @@ export async function getSpot (id) {
     .select('schools.id', 'schools.name', 'schools.logo')
     .innerJoin('spots_schools', 'schools.id', 'spots_schools.school_id')
     .where('spots_schools.spot_id', result.id);
-  const photos = await knex('posts')
-    .where('owner_id', result.id)
-    .where('owner_type', 'spots')
-    .whereRaw('posts.image_filename is not null')
-    .pluck('image_filename');
+  const photos = await knex('photos').where('owner_id', result.id).where('owner_type', 'spots').pluck('filename');
   const users = await knex('users')
     .select('users.id', 'users.logo')
     .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
@@ -54,27 +49,12 @@ export async function getSpot (id) {
 
 export async function getSpotGallery (id) {
   const spotInfo = await knex('spots').where('spots.id', id).select('spots.id', 'spots.name').first();
-  const photos = await knex('posts')
+  const photos = await knex('photos')
     .where('owner_id', id)
     .where('owner_type', 'spots')
-    .whereRaw('posts.image_filename is not null')
-    .select('image_filename', 'date');
-  const photosWithSize = await Promise.mapSeries(photos, async function (photo) {
-    const dir = photo.image_filename.substring(0, 2);
-    const filename = photo.image_filename.substring(2);
-    const path = `usercontent/${dir}/${filename}`;
-    const fileStream = fs.createReadStream(path);
-    const size = await getImageSize(fileStream);
-    fileStream.destroy();
-    return {
-      width: size.width,
-      height: size.height,
-      photo: photo.image_filename,
-      date: photo.date,
-    };
-  });
-  const groupedPhotos = _.groupBy(photosWithSize, function (photo) {
-    return moment(photo.date).month();
+    .select('filename', 'month', 'width', 'height');
+  const groupedPhotos = _.groupBy(photos, function (photo) {
+    return photo.month;
   });
   return {
     id: spotInfo.id,
@@ -178,11 +158,10 @@ export async function getSpotForm (id) {
   const allSchools = await knex('schools')
     .select('schools.id', 'schools.name', 'schools.logo')
     .orderBy('schools.name', 'asc');
-  const photos = await knex('posts')
+  const photos = await knex('photos')
     .where('owner_id', id)
     .where('owner_type', 'spots')
-    .whereRaw('posts.image_filename is not null')
-    .pluck('image_filename');
+    .select('width', 'height', 'month', 'created_at', 'filename');
   const users = await knex('users')
     .pluck('users.id')
     .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
@@ -227,6 +206,24 @@ export async function saveSpot (id, values) {
   const inserts = values.schools.map(schoolId => ({ spot_id: id, school_id: schoolId }));
   await knex('spots_schools').insert(inserts);
 
+  await knex('photos').where('owner_id', id).where('owner_type', 'spots').del();
+  console.info('photos deleted');
+  const photosInserts = values.photos.map(photo => ({ ...photo, owner_id: id, owner_type: 'spots' }));
+  console.info(photosInserts);
+  await knex('photos').insert(photosInserts);
+
   return { status: 'ok', errors: {} };
+}
+
+export async function rotate (direction, filename) {
+  const pathToOriginalFile = hashPath(filename);
+  const rotatedFile = await rotateImage(direction, pathToOriginalFile);
+  const size = getImageSize.sync(rotatedFile);
+  const hash = await fileMD5(rotatedFile);
+  return {
+    filename: hash,
+    width: size.width,
+    height: size.height,
+  };
 }
 

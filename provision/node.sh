@@ -10,3 +10,5 @@ which nave || (
 sudo nave usemain 7.6.0
 which yarn || npm install -g yarn
 which pm2 || npm install -g pm2
+which python || sudo apt-get -y install python
+which g++ || sudo apt-get -y install build-essential g++

@@ -3,6 +3,9 @@
 
 import fs from 'fs';
 import process from 'process';
+import fsp from 'fs-promise';
+import getImageSize from 'probe-image-size';
+import { hashPath } from './src/utils';
 import { fileMD5, lookupId, insert } from './import_utils';
 const fileName = process.env.USERS || '../scraper/users.json';
 const data = JSON.parse(fs.readFileSync(fileName));
@@ -42,13 +45,20 @@ function gender (str) {
       const albumId = await insert('albums', albumRecordDbEntry);
       console.info('album: ', albumId);
       await Promise.mapSeries(albumRecord.images, async function (imageRecord) {
-        const imageRecordDbEntry = {
-          created_at: imageRecord.date,
-          filename: await fileMD5(imageRecord.filename),
+        const filename = await fileMD5(imageRecord.filename);
+        const content = await fsp.readFile(hashPath(filename));
+        const month = new Date(imageRecord.date).getMonth();
+        const size = getImageSize.sync(content);
+
+        await insert('photos', {
           owner_id: albumId,
           owner_type: 'albums',
-        };
-        await insert('photos', imageRecordDbEntry);
+          width: size.width,
+          height: size.height,
+          month: month,
+          created_at: imageRecord.date,
+          filename: filename,
+        });
       });
     });
   }

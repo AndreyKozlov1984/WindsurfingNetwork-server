@@ -4,11 +4,12 @@ import json from 'koa-json';
 import bodyParser from 'koa-bodyparser';
 import fsp from 'fs-promise';
 import asyncBusboy from 'async-busboy';
+import getImageSize from 'probe-image-size';
 
 import { getDashboardContent, getLookupData } from '~/dashboard';
 import { getPosts, getPost } from '~/posts';
-import { getSpot, getSpotForm, getSpotGallery, getSpotUsers, getSpotSchools, saveSpot } from '~/spots';
-import { fileMD5, resize } from './utils';
+import { rotate, getSpot, getSpotForm, getSpotGallery, getSpotUsers, getSpotSchools, saveSpot } from '~/spots';
+import { fileMD5, resize, getCreatedDate } from './utils';
 import streamToPromise from 'stream-to-promise';
 
 const app = new Koa();
@@ -45,6 +46,21 @@ uploadRouter.post('/', async function (ctx) {
   ctx.body = { success: true, id: md5 };
 });
 
+uploadRouter.post('/photo', async function (ctx) {
+  const { files } = await asyncBusboy(ctx.req);
+  const fileStream = files[0];
+  const content = await streamToPromise(fileStream);
+  const md5 = await fileMD5(content);
+  const size = getImageSize.sync(content);
+  const date = (await getCreatedDate(content)) || new Date();
+  const month = date.getMonth();
+
+  ctx.body = {
+    success: true,
+    record: { filename: md5, width: size.width, height: size.height, created_at: date, month: month },
+  };
+});
+
 const postsRouter = new Router({
   prefix: '/api/posts',
 });
@@ -57,6 +73,9 @@ postsRouter.get('/:id', async function (ctx) {
 
 const spotsRouter = new Router({
   prefix: '/api/spots',
+});
+spotsRouter.get('/rotate/:direction/:filename', async function (ctx) {
+  ctx.body = await rotate(ctx.params.direction, ctx.params.filename);
 });
 spotsRouter.get('/:id', async function (ctx) {
   ctx.body = await getSpot(ctx.params.id);

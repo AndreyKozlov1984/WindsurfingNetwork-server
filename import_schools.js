@@ -1,5 +1,8 @@
 // Import all spots from the scraper
 import fs from 'fs';
+import fsp from 'fs-promise';
+import getImageSize from 'probe-image-size';
+import { hashPath } from './src/utils';
 import process from 'process';
 import { insert, lookupId, fileMD5 } from './import_utils';
 import knex from '~/knex';
@@ -39,11 +42,19 @@ const data = JSON.parse(fs.readFileSync(fileName));
       });
     });
     await Promise.mapSeries(schoolRecord.photos, async function (photoRecord) {
+      const filename = await fileMD5(photoRecord.filename);
+      const content = await fsp.readFile(hashPath(filename));
+      const month = new Date(photoRecord.date).getMonth();
+      const size = getImageSize.sync(content);
+
       await insert('photos', {
-        filename: await fileMD5(photoRecord.filename),
-        created_at: photoRecord.date,
         owner_type: 'schools',
         owner_id: schoolId,
+        width: size.width,
+        height: size.height,
+        month: month,
+        created_at: photoRecord.date,
+        filename: filename,
       });
     });
     await Promise.mapSeries(schoolRecord.spots, async function (spotOriginalId) {
