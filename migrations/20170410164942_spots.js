@@ -1,12 +1,12 @@
 exports.up = function (knex, Promise) {
   return knex.schema.createTable('spots', function (table) {
     table.increments('id').primary();
-    table.integer('original_id');
-    table.integer('rating');
-    table.string('name');
-    table.float('lat');
-    table.float('lng');
-    table.string('country');
+    table.integer('original_id').index();
+    table.integer('rating').index();
+    table.string('name').index();
+    table.float('lat').index();
+    table.float('lng').index();
+    table.string('country').index();
     table.string('region');
     table.jsonb('monthly_distribution');
     table.jsonb('surface_stats');

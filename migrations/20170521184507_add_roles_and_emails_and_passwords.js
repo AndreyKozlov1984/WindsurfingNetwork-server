@@ -1,8 +1,8 @@
 exports.up = async function (knex) {
   await knex.schema.alterTable('users', function (t) {
-    t.string('email');
+    t.string('email').index();
     t.string('password');
-    t.string('role');
+    t.string('role').index();
   });
 };
 exports.down = async function (knex) {

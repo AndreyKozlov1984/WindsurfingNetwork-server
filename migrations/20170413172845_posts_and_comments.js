@@ -1,36 +1,36 @@
 exports.up = async function (knex) {
   await knex.schema.createTable('posts', function (table) {
     table.increments('id').primary();
-    table.integer('owner_id');
-    table.string('owner_type');
-    table.integer('user_id');
-    table.integer('school_id');
+    table.integer('owner_id').index();
+    table.string('owner_type').index();
+    table.integer('user_id').index();
+    table.integer('school_id').index();
     table.text('content');
-    table.datetime('date');
-    table.string('wind_direction');
-    table.integer('wind_force');
-    table.integer('wind_gust');
-    table.float('lat');
-    table.float('lng');
+    table.datetime('date').index();
+    table.string('wind_direction').index();
+    table.integer('wind_force').index();
+    table.integer('wind_gust').index();
+    table.float('lat').index();
+    table.float('lng').index();
     table.string('image_filename');
   });
   await knex.schema.createTable('comments', function (table) {
     table.increments('id').primary();
-    table.integer('user_id');
+    table.integer('user_id').index();
     table.text('content');
-    table.datetime('date');
-    table.integer('post_id');
+    table.datetime('date').index();
+    table.integer('post_id').index();
   });
   await knex.schema.createTable('schools', function (table) {
     table.increments('id').primary();
-    table.integer('original_id');
+    table.integer('original_id').index();
     table.text('description');
-    table.string('name');
+    table.string('name').index();
     table.string('logo');
     table.string('website');
     table.string('contacts');
-    table.bool('ensurance');
-    table.string('certificate');
+    table.bool('ensurance').index();
+    table.string('certificate').index();
     table.jsonb('availability');
   });
   await knex.schema.createTable('users', function (table) {
@@ -39,25 +39,25 @@ exports.up = async function (knex) {
     table.string('logo');
     table.date('birth_date');
     table.integer('rating');
-    table.string('name');
-    table.enu('gender', ['male', 'female']);
-    table.string('country');
+    table.string('name').index();
+    table.enu('gender', ['male', 'female']).index();
+    table.string('country').index();
     table.string('city');
     table.jsonb('experience');
     table.jsonb('items');
   });
   await knex.schema.createTable('users_schools', function (table) {
-    table.integer('user_id');
-    table.integer('school_id');
-    table.bool('is_owner');
+    table.integer('user_id').index();
+    table.integer('school_id').index();
+    table.bool('is_owner').index();
   });
   await knex.schema.createTable('spots_schools', function (table) {
-    table.integer('spot_id');
-    table.integer('school_id');
+    table.integer('spot_id').index();
+    table.integer('school_id').index();
   });
   await knex.schema.createTable('users_spots', function (table) {
-    table.integer('user_id');
-    table.integer('spot_id');
+    table.integer('user_id').index();
+    table.integer('spot_id').index();
   });
 };
 

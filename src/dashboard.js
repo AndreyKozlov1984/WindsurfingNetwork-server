@@ -62,14 +62,19 @@ export async function getDashboardContent (filters) {
 
   const data = await query
     .select(
-      '*',
+      'spots.id',
+      'spots.name',
+      'spots.country',
+      'spots.region',
+      'spots.logo',
+      'spots.lat',
+      'spots.lng',
       knex.raw(`(select count(*)::int from users_spots us where us.spot_id = spots.id) as users_count`),
       knex.raw(`(select count(*)::int from spots_schools ss where ss.spot_id = spots.id) as schools_count`),
       knex.raw(
-        `(select count(*)::int from posts p where 1 = 1
+        `(select count(*)::int from photos p where 1 = 1
         and p.owner_type = 'spots'
-        and p.owner_id = spots.id
-        and p.image_filename is not null
+        and p.owner_id::int = spots.id
        ) as photos_count`,
       ),
     )
@@ -82,6 +87,7 @@ export async function getDashboardContent (filters) {
     .orderBy('posts.date', 'desc')
     .select('posts.id', 'users.name', 'posts.content', 'posts.date')
     .limit(20);
+
   return {
     mapMarkers: data.map(function (record) {
       return {
