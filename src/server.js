@@ -39,6 +39,7 @@ loginRouter.post('/sign_in', async function (ctx) {
         uid: result.user.email,
         provider: 'email',
         email: result.user.email,
+        role: result.user.role,
       },
     };
     ctx.set({
@@ -60,6 +61,7 @@ loginRouter.get('/validate_token', function (ctx) {
         uid: user.email,
         provider: 'email',
         email: user.email,
+        role: user.role,
       },
     };
     ctx.set({
