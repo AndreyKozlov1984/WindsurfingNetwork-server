@@ -6,3 +6,4 @@ babel-node import_users.js
 babel-node import_spot_messages.js
 babel-node import_spot_users.js
 babel-node import_schools.js
+babel-node import_admin.js

@@ -78,6 +78,7 @@ export async function getDashboardContent (filters) {
        ) as photos_count`,
       ),
     )
+    // .limit(10)
     .orderBy('users_count', 'desc');
   const spotIds = _.map(data, 'id');
   const posts = await knex('posts')
