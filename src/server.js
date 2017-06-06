@@ -9,7 +9,16 @@ import { sign } from 'jsonwebtoken';
 
 import { getDashboardContent, getLookupData } from '~/dashboard';
 import { getPosts, getPost } from '~/posts';
-import { rotate, getSpot, getSpotForm, getSpotGallery, getSpotUsers, getSpotSchools, saveSpot } from '~/spots';
+import {
+  rotate,
+  getSpot,
+  getSpotForm,
+  getSpotGallery,
+  getSpotUsers,
+  getSpotUsersPage,
+  getSpotSchools,
+  saveSpot,
+} from '~/spots';
 import { fileMD5, resize, getCreatedDate } from './utils';
 import { login, loadUser, extractToken, isAdmin } from './auth';
 import streamToPromise from 'stream-to-promise';
@@ -138,6 +147,9 @@ spotsRouter.get('/:id/edit', isAdmin(), async function (ctx) {
 });
 spotsRouter.get('/:id/gallery', async function (ctx) {
   ctx.body = await getSpotGallery(ctx.params.id);
+});
+spotsRouter.get('/:id/users/page', async function (ctx) {
+  ctx.body = await getSpotUsersPage(ctx.params.id, ctx.request.query.offset, ctx.request.query.limit);
 });
 spotsRouter.get('/:id/users', async function (ctx) {
   ctx.body = await getSpotUsers(ctx.params.id);

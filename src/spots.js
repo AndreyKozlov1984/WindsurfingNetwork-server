@@ -65,6 +65,19 @@ export async function getSpotGallery (id) {
 
 export async function getSpotUsers (id) {
   const spotInfo = await knex('spots').where('spots.id', id).select('spots.id', 'spots.name').first();
+  const usersCount = await knex('users')
+    .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
+    .where('users_spots.spot_id', id)
+    .count('*');
+
+  return {
+    id: spotInfo.id,
+    name: spotInfo.name,
+    count: +usersCount[0].count,
+  };
+}
+
+export async function getSpotUsersPage (id, offset, limit) {
   const users = await knex('users')
     .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
     .where('users_spots.spot_id', id)
@@ -82,13 +95,12 @@ export async function getSpotUsers (id) {
           where albums.user_id =  users.id) as photos_count
         `,
       ),
-    );
+    )
+    .offset(offset)
+    .limit(limit)
+    .orderBy('rating', 'desc');
 
-  return {
-    id: spotInfo.id,
-    name: spotInfo.name,
-    users: users,
-  };
+  return users;
 }
 
 export async function getSpotSchools (id) {
