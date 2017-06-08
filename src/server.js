@@ -149,10 +149,15 @@ spotsRouter.get('/:id/gallery', async function (ctx) {
   ctx.body = await getSpotGallery(ctx.params.id);
 });
 spotsRouter.get('/:id/users/page', async function (ctx) {
-  ctx.body = await getSpotUsersPage(ctx.params.id, ctx.request.query.offset, ctx.request.query.limit);
+  ctx.body = await getSpotUsersPage(
+    ctx.params.id,
+    ctx.request.query.search,
+    ctx.request.query.offset,
+    ctx.request.query.limit,
+  );
 });
 spotsRouter.get('/:id/users', async function (ctx) {
-  ctx.body = await getSpotUsers(ctx.params.id);
+  ctx.body = await getSpotUsers(ctx.params.id, ctx.request.query.search);
 });
 spotsRouter.get('/:id/schools', async function (ctx) {
   ctx.body = await getSpotSchools(ctx.params.id);

@@ -63,11 +63,22 @@ export async function getSpotGallery (id) {
   };
 }
 
-export async function getSpotUsers (id) {
+function applySearch (search) {
+  if (!search) {
+    return knex.raw('1 = 1');
+  } else {
+    return function () {
+      this.where('users.name', 'ilike', `%${search}%`);
+    };
+  }
+}
+
+export async function getSpotUsers (id, search) {
   const spotInfo = await knex('spots').where('spots.id', id).select('spots.id', 'spots.name').first();
   const usersCount = await knex('users')
     .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
     .where('users_spots.spot_id', id)
+    .where(applySearch(search))
     .count('*');
 
   return {
@@ -77,7 +88,7 @@ export async function getSpotUsers (id) {
   };
 }
 
-export async function getSpotUsersPage (id, offset, limit) {
+export async function getSpotUsersPage (id, search, offset, limit) {
   const users = await knex('users')
     .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
     .where('users_spots.spot_id', id)
@@ -96,6 +107,7 @@ export async function getSpotUsersPage (id, offset, limit) {
         `,
       ),
     )
+    .where(applySearch(search))
     .offset(offset)
     .limit(limit)
     .orderBy('rating', 'desc');
