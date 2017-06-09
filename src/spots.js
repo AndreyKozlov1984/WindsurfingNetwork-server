@@ -89,6 +89,8 @@ export async function getSpotUsers (id, search) {
 }
 
 export async function getSpotUsersPage (id, search, offset, limit) {
+  console.info('offset:', offset);
+  console.info('limit:', limit);
   const users = await knex('users')
     .innerJoin('users_spots', 'users_spots.user_id', 'users.id')
     .where('users_spots.spot_id', id)
@@ -110,7 +112,8 @@ export async function getSpotUsersPage (id, search, offset, limit) {
     .where(applySearch(search))
     .offset(offset)
     .limit(limit)
-    .orderBy('rating', 'desc');
+    .orderBy('rating', 'desc')
+    .orderBy('name', 'asc');
 
   return users;
 }
