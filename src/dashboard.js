@@ -55,20 +55,19 @@ function applyFilters ({ query, filters }) {
   return result;
 }
 
-export async function getDashboardContent (filters) {
+export async function getSpotsPage ({ filters, offset, limit }) {
   // build request;
   let query = knex('spots');
+  console.info(filters);
   query = applyFilters({ query, filters });
 
-  const data = await query
+  const spots = await query
     .select(
       'spots.id',
       'spots.name',
       'spots.country',
       'spots.region',
       'spots.logo',
-      'spots.lat',
-      'spots.lng',
       knex.raw(`(select count(*)::int from users_spots us where us.spot_id = spots.id) as users_count`),
       knex.raw(`(select count(*)::int from spots_schools ss where ss.spot_id = spots.id) as schools_count`),
       knex.raw(
@@ -78,45 +77,36 @@ export async function getDashboardContent (filters) {
        ) as photos_count`,
       ),
     )
-    // .limit(10)
+    .offset(offset)
+    .limit(limit)
     .orderBy('users_count', 'desc');
-  const spotIds = _.map(data, 'id');
-  const posts = await knex('posts')
-    .where('owner_type', 'spots')
-    .whereIn('owner_id', spotIds)
-    .innerJoin('users', 'users.id', 'posts.user_id')
-    .orderBy('posts.date', 'desc')
-    .select('posts.id', 'users.name', 'posts.content', 'posts.date')
-    .limit(20);
+  return spots;
+}
+
+export async function getDashboardContent (filters) {
+  // build request;
+  let query = knex('spots');
+  query = applyFilters({ query, filters });
+
+  const data = await query
+    .select(
+      'spots.id',
+      'spots.lat',
+      'spots.lng',
+      knex.raw(`(select count(*)::int from users_spots us where us.spot_id = spots.id) as users_count`),
+    )
+    .orderBy('users_count', 'desc');
 
   return {
-    mapMarkers: data.map(function (record) {
+    mapMarkers: data.map(function (record, index) {
       return {
         id: record.id,
         lat: record.lat,
         lng: record.lng,
+        index: index,
       };
     }),
-    spots: data.map(function (record) {
-      return {
-        id: record.id,
-        name: record.name,
-        country: record.country,
-        region: record.region,
-        logo: record.logo,
-        usersCount: record.users_count,
-        schoolsCount: record.schools_count,
-        photosCount: record.photos_count,
-      };
-    }),
-    activities: posts.map(function (record) {
-      return {
-        id: record.id,
-        content: record.content,
-        date: record.date,
-        name: record.name,
-      };
-    }),
+    spots: await getSpotsPage({ filters, offset: 0, limit: 1000000 }),
   };
 }
 

@@ -7,7 +7,7 @@ import asyncBusboy from 'async-busboy';
 import getImageSize from 'probe-image-size';
 import { sign } from 'jsonwebtoken';
 
-import { getDashboardContent, getLookupData } from '~/dashboard';
+import { getSpotsPage, getDashboardContent, getLookupData } from '~/dashboard';
 import { getPosts, getPost } from '~/posts';
 import {
   rotate,
@@ -29,6 +29,9 @@ const router = new Router({
 });
 router.post('/', async function (ctx) {
   ctx.body = await getDashboardContent(ctx.request.body);
+});
+router.post('/spots/page', async function (ctx) {
+  ctx.body = await getSpotsPage(ctx.request.body);
 });
 router.get('/init', async function (ctx) {
   ctx.body = await getLookupData();
