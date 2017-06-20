@@ -58,7 +58,6 @@ function applyFilters ({ query, filters }) {
 export async function getSpotsPage ({ filters, offset, limit }) {
   // build request;
   let query = knex('spots');
-  console.info(filters);
   query = applyFilters({ query, filters });
 
   const spots = await query
@@ -106,7 +105,9 @@ export async function getDashboardContent (filters) {
         index: index,
       };
     }),
-    spots: await getSpotsPage({ filters, offset: 0, limit: 1000000 }),
+    spots: {
+      count: data.length,
+    },
   };
 }
 
