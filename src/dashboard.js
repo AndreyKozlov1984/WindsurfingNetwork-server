@@ -78,7 +78,8 @@ export async function getSpotsPage ({ filters, offset, limit }) {
     )
     .offset(offset)
     .limit(limit)
-    .orderBy('users_count', 'desc');
+    .orderBy('users_count', 'desc')
+    .orderBy('id', 'asc');
   return spots;
 }
 
@@ -94,7 +95,8 @@ export async function getDashboardContent (filters) {
       'spots.lng',
       knex.raw(`(select count(*)::int from users_spots us where us.spot_id = spots.id) as users_count`),
     )
-    .orderBy('users_count', 'desc');
+    .orderBy('users_count', 'desc')
+    .orderBy('id', 'asc');
 
   return {
     mapMarkers: data.map(function (record, index) {
